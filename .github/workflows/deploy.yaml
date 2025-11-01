@@ -1,0 +1,47 @@
+name: Deploy to EKS
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-2
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.EKS_DEPLOY_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: '1.33.5'
+
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig --name my-eks --region "${AWS_REGION}"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.19.0
+
+      - name: Deploy Helm Chart
+        run: |
+          helm upgrade --install nginx ./nginx-chart \
+            --namespace nginx --create-namespace \
+            --atomic --wait --timeout 5m
