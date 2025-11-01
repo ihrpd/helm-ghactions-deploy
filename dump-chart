@@ -1,0 +1,2 @@
+#!/bin/bash
+helm template nginx ./nginx-chart > nginx-template-dump.yaml
