@@ -1,4 +1,4 @@
-name: Deploy to EKS
+name: Deploy nginx-chart to EKS
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
         with:
-          version: '1.33.5'
+          version: 'latest'
 
       - name: Update Kubeconfig
         run: |
@@ -38,10 +38,12 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.19.0
+          version: 'latest'
 
       - name: Deploy Helm Chart
         run: |
           helm upgrade --install nginx ./nginx-chart \
             --namespace nginx --create-namespace \
             --atomic --wait --timeout 5m
+        env:
+          KUBECONFIG: /home/runner/.kube/config
